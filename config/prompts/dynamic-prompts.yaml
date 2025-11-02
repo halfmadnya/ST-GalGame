@@ -1,0 +1,244 @@
+# 动态提示词配置文件
+# 支持基于变量值的条件提示词选择
+
+# 配置版本
+version: "1.0.0"
+
+# 全局变量定义
+variables:
+  # 定义可用的动态变量及其类型
+  npc_relationship:
+    type: "number"
+    description: "NPC与玩家的关系值"
+    range: [-100, 100]
+  
+  player_reputation:
+    type: "number"
+    description: "玩家声望值"
+    range: [0, 1000]
+  
+  story_phase:
+    type: "string"
+    description: "故事阶段"
+    values: ["opening", "development", "climax", "ending"]
+  
+  difficulty_level:
+    type: "string"
+    description: "难度等级"
+    values: ["easy", "normal", "hard", "nightmare"]
+
+# 提示词模板定义
+prompt_templates:
+  
+  # 基础GM提示词（始终包含）
+  base_gm:
+    type: "static"
+    content: |
+      你是一个专业的游戏主持人(GM)，正在运行一个地牢探险RPG游戏。
+  
+  # NPC关系相关提示词
+  npc_relationship:
+    type: "conditional"
+    variable: "npc_relationship"
+    conditions:
+      - range: [-100, -50]
+        label: "敌对"
+        content: |
+          # NPC关系状态：敌对
+          
+      - range: [-49, 0]
+        label: "冷淡"
+        content: |
+          # NPC关系状态：冷淡
+          
+      - range: [1, 50]
+        label: "中立"
+        content: |
+          # NPC关系状态：中立
+          
+      - range: [51, 80]
+        label: "友好"
+        content: |
+          # NPC关系状态：友好
+          
+      - range: [81, 100]
+        label: "亲密"
+        content: |
+          # NPC关系状态：亲密
+  
+  # 玩家声望相关提示词
+  player_reputation:
+    type: "conditional"
+    variable: "player_reputation"
+    conditions:
+      - range: [0, 100]
+        label: "无名小卒"
+        content: |
+          # 玩家声望：无名小卒
+          
+      - range: [101, 300]
+        label: "小有名气"
+        content: |
+          # 玩家声望：小有名气
+          
+      - range: [301, 600]
+        label: "声名远扬"
+        content: |
+          # 玩家声望：声名远扬
+          
+      - range: [601, 1000]
+        label: "传奇英雄"
+        content: |
+          # 玩家声望：传奇英雄
+  
+  # 故事阶段相关提示词
+  story_phase:
+    type: "enum"
+    variable: "story_phase"
+    conditions:
+      - value: "opening"
+        label: "开场阶段"
+        content: |
+          # 故事阶段：开场
+          
+      - value: "development"
+        label: "发展阶段"
+        content: |
+          # 故事阶段：发展
+          
+      - value: "climax"
+        label: "高潮阶段"
+        content: |
+          # 故事阶段：高潮
+          
+      - value: "ending"
+        label: "结局阶段"
+        content: |
+          # 故事阶段：结局
+  
+  # 难度等级相关提示词
+  difficulty_level:
+    type: "enum"
+    variable: "difficulty_level"
+    conditions:
+      - value: "easy"
+        label: "简单"
+        content: |
+          # 难度：简单
+          
+      - value: "normal"
+        label: "普通"
+        content: |
+          # 难度：普通
+          
+      - value: "hard"
+        label: "困难"
+        content: |
+          # 难度：困难
+          
+      - value: "nightmare"
+        label: "噩梦"
+        content: |
+          # 难度：噩梦
+  
+  # 游戏规则（静态内容）
+  game_rules:
+    type: "static"
+    content: |
+      ## 游戏规则：
+      1. 根据玩家行动生动描述场景和结果
+      2. 在适当时机调用游戏功能
+      3. 保持故事的连贯性和挑战性
+  
+  # 函数调用规则（静态内容）
+  function_call_rules:
+    type: "static"
+    content: |
+      ## 函数调用规则：
+      当需要调用游戏功能时，使用以下格式，并在调用后立即停止输出：
+      
+      战斗系统：
+      <FUNCTION_CALL>
+      {
+        "name": "start_battle",
+        "arguments": {
+          "enemies": [{"type": "敌人类型", "level": 等级, "count": 数量}],
+          "environment": "环境描述",
+          "special_conditions": ["特殊条件"]
+        }
+      }
+      </FUNCTION_CALL>
+      
+      解谜系统：
+      <FUNCTION_CALL>
+      {
+        "name": "start_puzzle",
+        "arguments": {
+          "puzzle_type": "谜题类型",
+          "difficulty": "难度"
+        }
+      }
+      </FUNCTION_CALL>
+      
+      搜索系统：
+      <FUNCTION_CALL>
+      {
+        "name": "search_area",
+        "arguments": {
+          "target": "搜索目标",
+          "difficulty": "难度"
+        }
+      }
+      </FUNCTION_CALL>
+      
+      重要：输出函数调用后立即停止，等待系统执行完毕！
+
+# 提示词组合策略
+composition_strategies:
+  
+  # 默认策略
+  default:
+    description: "默认的提示词组合顺序"
+    order:
+      - "base_gm"
+      - "npc_relationship"
+      - "player_reputation"
+      - "story_phase"
+      - "difficulty_level"
+      - "game_rules"
+      - "function_call_rules"
+  
+  # 简化策略（用于快速响应）
+  simplified:
+    description: "简化版提示词，减少token消耗"
+    order:
+      - "base_gm"
+      - "npc_relationship"
+      - "game_rules"
+      - "function_call_rules"
+  
+  # 战斗专用策略
+  combat_focused:
+    description: "战斗场景专用提示词"
+    order:
+      - "base_gm"
+      - "difficulty_level"
+      - "game_rules"
+      - "function_call_rules"
+
+# 扩展配置
+extensions:
+  # 允许加载额外的提示词文件
+  additional_files:
+    - "config/prompts/custom-prompts.yaml"
+    - "config/prompts/event-prompts.yaml"
+  
+  # 自定义变量计算函数
+  computed_variables:
+    enabled: true
+    # 可以通过代码注册计算函数
+  
+  # 缓存配置
+  cache:
+    enabled: true
+    ttl: 300  # 缓存时间（秒）
