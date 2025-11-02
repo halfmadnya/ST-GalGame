@@ -5,8 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>💕 恋爱模拟器 - GalGame Demo</title>
     <!-- 配置文件必须先加载 -->
-    <script src="https://cdn.jsdelivr.net/gh/halfmadnya/ST-GalGame@main/config.js"></script>
     <script>
+        // 内联配置，确保立即可用
+        const CDN_BASE_URL = 'https://cdn.jsdelivr.net/gh/halfmadnya/ST-GalGame@main/';
+        // 强制使用CDN（除非在生产环境的服务器上）
+        const isProduction = window.location.hostname !== 'localhost' &&
+                            window.location.hostname !== '127.0.0.1' &&
+                            window.location.protocol !== 'file:';
+        const BASE_URL = isProduction ? './' : CDN_BASE_URL;
+        
+        window.GameConfig = {
+            BASE_URL: BASE_URL,
+            CDN_BASE_URL: CDN_BASE_URL,
+            isLocalFile: !isProduction,
+            isProduction: isProduction,
+            getPath: function(relativePath) {
+                return BASE_URL + relativePath;
+            },
+            getModulePath: function(modulePath) {
+                return BASE_URL + modulePath;
+            },
+            getConfigPath: function(configPath) {
+                return BASE_URL + configPath;
+            },
+            getStylePath: function(stylePath) {
+                return BASE_URL + stylePath;
+            }
+        };
+        
+        console.log('[Config] Base URL:', BASE_URL);
+        console.log('[Config] Is Production:', isProduction);
+        console.log('[Config] Hostname:', window.location.hostname);
+        console.log('[Config] Protocol:', window.location.protocol);
+        
         // 动态加载CSS
         (function() {
             const link = document.createElement('link');
@@ -68,9 +99,6 @@
 
     <!-- 模块化JavaScript加载 -->
     <script type="module">
-        // 获取基础URL
-        const BASE_URL = window.GameConfig.BASE_URL;
-        
         // 动态加载模块并显示进度
         const modules = [
             'core/EventBus.js',
@@ -97,14 +125,14 @@
             if (loadedCount === modules.length) {
                 // 所有模块加载完成，启动游戏
                 setTimeout(() => {
-                    import(BASE_URL + 'index.js');
+                    import(window.GameConfig.BASE_URL + 'index.js');
                 }, 500);
             }
         }
 
         // 预加载所有模块
         modules.forEach(module => {
-            const fullPath = BASE_URL + module;
+            const fullPath = window.GameConfig.BASE_URL + module;
             import(fullPath).then(() => {
                 updateProgress();
             }).catch(error => {
