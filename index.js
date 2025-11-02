@@ -1,30 +1,37 @@
-// index.js
-import EventBus from './core/EventBus.js';
-import ServiceLocator from './core/ServiceLocator.js';
-import GameState from './models/GameState.js';
-import LLMService from './services/LLMService.js';
-import FunctionCallService from './services/FunctionCallService.js';
-import GameStateService from './services/GameStateService.js';
-import GameController from './controllers/GameController.js';
-import GameView from './views/GameView.js';
+// index.js - GalGame启动文件
 import GameCore from './core/GameCore.js';
 
 (async () => {
     try {
+        console.log('[GalGame] 💕 恋爱模拟器启动中...');
+        
+        // 检查callGenerate函数是否可用
         if (typeof window.callGenerate !== 'function') {
-            throw new Error('callGenerate function not available...');
+            console.warn('[GalGame] callGenerate函数不可用，某些功能可能受限');
         }
         
-        console.log('LLM Game Demo starting...');
-        
+        // 创建并初始化游戏核心
         const gameCore = new GameCore();
         await gameCore.initialize();
         
+        // 暴露到全局供调试使用
         window.gameCore = gameCore;
-        console.log('Game ready!');
+        
+        console.log('[GalGame] ✅ 游戏准备就绪！');
+        console.log('[GalGame] 💕 开始你的恋爱之旅吧！');
         
     } catch (error) {
-        console.error('Failed to start game:', error);
-        // 错误处理
+        console.error('[GalGame] ❌ 游戏启动失败:', error);
+        
+        // 显示错误信息
+        const errorContainer = document.getElementById('error-container');
+        const errorMessage = document.getElementById('error-message');
+        const loadingScreen = document.getElementById('loading-screen');
+        
+        if (errorContainer && errorMessage && loadingScreen) {
+            loadingScreen.classList.add('hidden');
+            errorMessage.textContent = `启动失败: ${error.message}`;
+            errorContainer.classList.remove('hidden');
+        }
     }
 })();
